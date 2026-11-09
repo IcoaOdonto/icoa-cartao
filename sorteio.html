@@ -110,7 +110,8 @@ arq.addEventListener('change',function(){
   var f=arq.files[0];if(!f)return;
   var rd=new FileReader();
   rd.onload=function(e){
-    var wb=XLSX.read(e.target.result,{type:'array'});
+    var isCsv=/\.(csv|txt)$/i.test(f.name);
+    var wb=isCsv?XLSX.read(String(e.target.result).replace(/^\uFEFF/,''),{type:'string'}):XLSX.read(e.target.result,{type:'array'});
     var ws=wb.Sheets[wb.SheetNames[0]];
     var rows=XLSX.utils.sheet_to_json(ws,{header:1,defval:''});
     if(!rows.length)return;
@@ -121,9 +122,9 @@ arq.addEventListener('change',function(){
     ta.value=list.join('\n');refresh();
     try{localStorage.setItem('icoa-sorteio',ta.value)}catch(x){}
   };
-  rd.readAsArrayBuffer(f);arq.value='';
+  if(/\.(csv|txt)$/i.test(f.name))rd.readAsText(f,'UTF-8');else rd.readAsArrayBuffer(f);arq.value='';
 });
-cl.onclick=function(){ta.value='';refresh();try{localStorage.removeItem('icoa-sorteio')}catch(e){}};
+cl.onclick=function(){ta.value='';winners=[];hist.innerHTML='';st.hidden=true;go.textContent='Sortear';refresh();try{localStorage.removeItem('icoa-sorteio')}catch(e){}};
 function rnd(n){
   if(window.crypto&&crypto.getRandomValues){var a=new Uint32Array(1);crypto.getRandomValues(a);return a[0]%n}
   return Math.floor(Math.random()*n);
